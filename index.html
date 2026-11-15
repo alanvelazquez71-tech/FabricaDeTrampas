@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Fábrica de trampas</title>
+
+    <!-- KaTeX: renderiza las fracciones algebraicas (copia local, funciona sin internet) -->
+    <link rel="stylesheet" href="./public/katex/katex.min.css">
+    <script defer src="./public/katex/katex.min.js"></script>
+
+    <!-- Fuente pixelada para títulos y botones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Solo se muestra en celulares en vertical (ver styles.css) -->
+    <div id="girar">
+        <div class="girar-icono"></div>
+        <p>Gira tu dispositivo para jugar</p>
+    </div>
+
+    <div id="juego">
+
+        <!-- Fondo -->
+        <img id="fondo" src="./public/fondo/FONDO.png" alt="">
+
+        <!-- Pantalla con el ejercicio -->
+        <div id="pantalla" class="oculto">
+            <img src="./public/pregunta/PREGUNTA.png" alt="">
+            <div id="textoPregunta"></div>
+        </div>
+
+        <!-- Las dos respuestas propuestas -->
+        <div id="propuesta" class="oculto">
+            <img src="./public/propuesta/PROPUESTA.png" alt="">
+            <div id="opciones">
+                <span class="opcion" id="opcionIzq"></span>
+                <span class="opcion" id="opcionDer"></span>
+            </div>
+        </div>
+
+        <!-- Botones de decisión -->
+        <button class="decision" id="btnIzq" data-lado="izq" aria-label="Elegir la respuesta de la izquierda">
+            <img src="./public/decision/LEFT.png" alt="">
+        </button>
+        <button class="decision" id="btnDer" data-lado="der" aria-label="Elegir la respuesta de la derecha">
+            <img src="./public/decision/RIGHT.png" alt="">
+        </button>
+
+        <!-- Letreros de resultado -->
+        <div id="resultados">
+            <img class="resultado" id="resCorrecto" src="./public/resultado/CORRECTO.png" alt="Correcto">
+            <img class="resultado" id="resBien" src="./public/resultado/BIEN.png" alt="Bien">
+            <img class="resultado" id="resError" src="./public/resultado/ERROR.png" alt="Error">
+            <img class="resultado" id="resTrampa" src="./public/resultado/TRAMPA ABSURDA.png" alt="Trampa absurda detectada">
+        </div>
+
+        <!-- Vidas y progreso -->
+        <div id="estado">
+            <div id="vidas">
+                <img class="vida" src="./public/vidas/VIDA.png" alt="Vida">
+                <img class="vida" src="./public/vidas/VIDA.png" alt="Vida">
+                <img class="vida" src="./public/vidas/VIDA.png" alt="Vida">
+            </div>
+            <div id="progreso"></div>
+        </div>
+
+        <!-- Regresar al menú principal y música -->
+        <div id="controles">
+            <button id="btnRegresar" class="boton-regresar" aria-label="Regresar al menú principal">&#9664; Menú</button>
+            <button id="btnMusica" class="boton-regresar boton-musica" aria-label="Silenciar música">&#9835;</button>
+        </div>
+
+        <!-- Logos institucionales -->
+        <div id="logos">
+            <img src="./public/logos/dgapa.png" alt="UNAM - DGAPA">
+            <img src="./public/logos/fes-aragon.png" alt="FES Aragón, UNAM">
+        </div>
+
+        <!-- Ayuda -->
+        <div id="ayuda">
+            <img class="ayuda1" id="btnAyuda" src="./public/ayuda/SIGNO.png" alt="Ayuda">
+        </div>
+
+        <!-- Modal de ayuda -->
+        <div id="modalAyuda" class="modal" hidden>
+            <div class="modal-contenido" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+                <button class="modal-cerrar" id="cerrarAyuda" aria-label="Cerrar">&times;</button>
+                <h2 id="modalTitulo">Ayuda</h2>
+                <p id="modalResultado"></p>
+
+                <h3>Para simplificar</h3>
+                <ol class="lista-info">
+                    <li>Factoriza el numerador y el denominador.</li>
+                    <li>Cancela solo los <strong>factores</strong> que se repiten arriba y abajo (lo que está multiplicando a todo).</li>
+                    <li>Nunca canceles <strong>términos</strong> sumados o restados: <span class="tex">\dfrac{x+5}{x+2} \neq \dfrac{5}{2}</span>.</li>
+                </ol>
+
+                <h3>Casos que vas a encontrar</h3>
+                <ul class="modal-conceptos">
+                    <li><strong>División de monomios:</strong> divide los números y resta exponentes. <span class="tex">\dfrac{8x^{2}}{4x} = 2x</span></li>
+                    <li><strong>Factor común:</strong> <span class="tex">2x+4 = 2(x+2)</span></li>
+                    <li><strong>Diferencia de cuadrados:</strong> <span class="tex">a^{2}-b^{2} = (a+b)(a-b)</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Inicio -->
+        <div id="modalInicio" class="modal">
+            <div class="modal-contenido inicio" role="dialog" aria-modal="true" aria-labelledby="tituloJuego">
+                <h1 id="tituloJuego" class="titulo-juego">Fábrica de trampas</h1>
+                <p class="subtitulo" id="temaJuego"></p>
+                <p>Cada partida tiene 8 ejercicios elegidos al azar.</p>
+                <button class="boton-principal" id="btnComenzar">Comenzar</button>
+                <div class="botones-info">
+                    <button class="boton-info" data-abrir="modalInstrucciones">Instrucciones</button>
+                    <button class="boton-info" data-abrir="modalCreditos">Créditos</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retroalimentación al terminar (se llena desde juego.js) -->
+        <div id="modalRetro" class="modal" hidden>
+            <div class="modal-contenido" id="retroContenido" role="dialog" aria-modal="true"></div>
+        </div>
+
+        <!-- Instrucciones -->
+        <div id="modalInstrucciones" class="modal modal-info" hidden>
+            <div class="modal-contenido" role="dialog" aria-modal="true" aria-labelledby="instruccionesTitulo">
+                <button class="modal-cerrar" aria-label="Cerrar">&times;</button>
+                <h2 id="instruccionesTitulo">Instrucciones</h2>
+
+                <h3>¿En qué consiste?</h3>
+                <p>En la pantalla aparece una fracción algebraica para simplificar. El detector propone
+                    dos resultados: uno es correcto y el otro es un engaño.</p>
+
+                <h3>¿Cómo se juega?</h3>
+                <ol class="lista-info">
+                    <li>Lee la fracción de la pantalla y simplifícala factorizando.</li>
+                    <li>Compara con las dos propuestas.</li>
+                    <li>Presiona <strong>LEFT</strong> para elegir la de la izquierda o <strong>RIGHT</strong> para la de la derecha. También puedes usar las flechas del teclado.</li>
+                    <li>Después de responder, la pantalla muestra la factorización para que veas por qué.</li>
+                    <li>Si tienes dudas, presiona el signo de interrogación para ver la ayuda.</li>
+                </ol>
+
+                <h3>Oportunidades</h3>
+                <p>Tienes <strong>3 vidas</strong>. Cada respuesta incorrecta te quita una; si caes en una
+                    <strong>trampa absurda</strong> (por ejemplo, cancelar términos que se suman) el detector te avisa.
+                    Si pierdes las 3 vidas, el juego termina.</p>
+
+                <h3>Al terminar</h3>
+                <p>Verás un resumen con tus aciertos, los casos de factorización que conviene repasar
+                    y los ejercicios en los que te equivocaste.</p>
+            </div>
+        </div>
+
+        <!-- Créditos -->
+        <div id="modalCreditos" class="modal modal-info" hidden>
+            <div class="modal-contenido creditos" role="dialog" aria-modal="true" aria-labelledby="creditosTitulo">
+                <button class="modal-cerrar" aria-label="Cerrar">&times;</button>
+                <h2 id="creditosTitulo">Créditos</h2>
+
+                <h3>Facultad de Estudios Superiores Aragón, UNAM</h3>
+
+                <h3>UNAM-DGAPA-PAPIME PE106426</h3>
+
+                <h3>Versión original en JavaScript y HTML</h3>
+
+
+                <h3>Idea original</h3>
+                <p>Dra. Nelly Rigaud Téllez</p>
+
+                <h3>Coordinación</h3>
+                <p>Dra. Nelly Rigaud Téllez</p>
+
+                <h3>Programación original</h3>
+                <p>Alan Marco Velazquez Montiel</p>
+
+                <h3>Diseño original</h3>
+                <p>Leslie Pamela Flores Solache</p>
+
+                <h3>Revisión técnica</h3>
+                <p>
+                    Act. Luz María Lavin Alanis<br>
+                    Dr. Rigoberto León Sánchez<br>
+                    Mtro. Roberto Blanco Bautista<br>
+                    Mtro. Víctor Francisco Rodríguez Pérez
+                </p>
+
+                <p class="creditos-licencia">D.R. &copy; 2026, UNAM. CC BY-NC-ND</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- defer: se ejecutan en orden y después de KaTeX -->
+    <script defer src="reactivos.js"></script>
+    <script defer src="musica.js"></script>
+    <script defer src="juego.js"></script>
+
+</body>
+
+</html>

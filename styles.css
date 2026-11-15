@@ -1,0 +1,756 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0a1426;
+    min-height: 100dvh;
+    overflow: hidden;
+}
+
+/* Las imágenes se diseñaron en un lienzo de 1710x1140.
+   --u equivale a 1px de ese lienzo, así que las posiciones de abajo
+   son las coordenadas en píxeles de cada pieza dentro del diseño. */
+:root {
+    --ancho: min(95vw, 95dvh * 1.5, 1400px);
+    --u: calc(var(--ancho) / 1710);
+
+    --azul-noche: #0b1e3f;
+    --azul: #123a6b;
+    --cian: #4fd8ff;
+    --amarillo: #f5b301;
+    --texto: #e6f6ff;
+    --tinta-pantalla: #062a4d;
+}
+
+#juego {
+    position: relative;
+    width: var(--ancho);
+    aspect-ratio: 3 / 2;
+}
+
+#fondo {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 2%;
+}
+
+.oculto {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Pantalla del ejercicio */
+#pantalla {
+    position: absolute;
+    left: calc(249 * var(--u));
+    top: 0;
+    width: calc(1233 * var(--u));
+    z-index: 10;
+    transition: opacity 0.4s ease;
+}
+
+#pantalla img {
+    display: block;
+    width: 100%;
+}
+
+/* Zona útil de la pantalla cian, entre las flechas < > */
+#textoPregunta {
+    position: absolute;
+    left: calc(355 * var(--u));
+    top: calc(150 * var(--u));
+    width: calc(520 * var(--u));
+    height: calc(200 * var(--u));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: max(12px, calc(30 * var(--u)));
+    line-height: 1.3;
+    color: var(--tinta-pantalla);
+}
+
+/* ---------- Modo solución: la pantalla muestra el desarrollo ---------- */
+#textoPregunta.modo-solucion {
+    flex-direction: column;
+    gap: calc(10 * var(--u));
+    padding: calc(8 * var(--u)) calc(12 * var(--u));
+    box-sizing: border-box;
+    font-size: max(11px, calc(26 * var(--u)));
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: calc(14 * var(--u));
+    box-shadow: 0 0 0 calc(4 * var(--u)) var(--amarillo),
+                0 0 calc(24 * var(--u)) rgba(245, 179, 1, 0.8);
+    animation: destelloSolucion 0.5s ease-in-out 3;
+}
+
+@keyframes destelloSolucion {
+    0%, 100% { background: rgba(255, 255, 255, 0.55); }
+    50%      { background: rgba(245, 179, 1, 0.65); }
+}
+
+.etiqueta-solucion {
+    flex-shrink: 0;
+    padding: calc(6 * var(--u)) calc(16 * var(--u));
+    background: var(--azul-noche);
+    color: var(--amarillo);
+    border-radius: calc(6 * var(--u));
+    font-family: 'Press Start 2P', monospace;
+    font-weight: normal;
+    font-size: max(8px, calc(16 * var(--u)));
+    letter-spacing: calc(2 * var(--u));
+    text-transform: uppercase;
+}
+
+/* Puntos animados mientras "resuelve" */
+.etiqueta-solucion:not(.lista)::after {
+    content: '';
+    display: inline-block;
+    width: 3ch;
+    text-align: left;
+    animation: puntosResolviendo 0.9s steps(4) infinite;
+}
+
+@keyframes puntosResolviendo {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+}
+
+.etiqueta-solucion.lista {
+    background: #1f7a3a;
+    color: #ffffff;
+    animation: aparecerEtiqueta 0.35s ease-out;
+}
+
+.etiqueta-solucion.lista::before {
+    content: '\2714  ';
+}
+
+@keyframes aparecerEtiqueta {
+    from { transform: scale(1.4); }
+    to   { transform: scale(1); }
+}
+
+.solucion-cuerpo {
+    opacity: 0;
+    transform: translateY(calc(10 * var(--u)));
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.solucion-cuerpo.visible {
+    opacity: 1;
+    transform: none;
+}
+
+/* Barra que se vacía: tiempo restante para leer la solución */
+.solucion-barra {
+    flex-shrink: 0;
+    width: 80%;
+    height: calc(8 * var(--u));
+    min-height: 3px;
+    background: rgba(6, 42, 77, 0.2);
+    border-radius: calc(4 * var(--u));
+    overflow: hidden;
+}
+
+.solucion-barra span {
+    display: block;
+    height: 100%;
+    background: var(--tinta-pantalla);
+    transform-origin: left;
+}
+
+.solucion-barra.corriendo span {
+    animation-name: vaciarBarra;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@keyframes vaciarBarra {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+/* Propuestas */
+#propuesta {
+    position: absolute;
+    left: calc(543 * var(--u));
+    top: calc(525 * var(--u));
+    width: calc(627 * var(--u));
+    z-index: 10;
+    transition: opacity 0.4s ease;
+}
+
+#propuesta img {
+    display: block;
+    width: 100%;
+}
+
+/* Recuadro oscuro debajo de "PROPUESTA DETECTADA" */
+#opciones {
+    position: absolute;
+    left: calc(84 * var(--u));
+    top: calc(98 * var(--u));
+    width: calc(456 * var(--u));
+    height: calc(80 * var(--u));
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.opcion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    font-size: max(10px, calc(24 * var(--u)));
+    color: var(--texto);
+    overflow: hidden;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+#opcionIzq {
+    border-right: calc(2 * var(--u)) dashed rgba(79, 216, 255, 0.5);
+}
+
+.opcion.es-correcta {
+    color: #6dff8a;
+    text-shadow: 0 0 calc(8 * var(--u)) rgba(109, 255, 138, 0.8);
+}
+
+.opcion.es-incorrecta {
+    color: #ff6b6b;
+    text-decoration: line-through;
+}
+
+/* Botones LEFT / RIGHT */
+.decision {
+    position: absolute;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    z-index: 11;
+    transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.decision img {
+    display: block;
+    width: 100%;
+}
+
+#btnIzq {
+    left: calc(402 * var(--u));
+    top: calc(702 * var(--u));
+    width: calc(464 * var(--u));
+}
+
+#btnDer {
+    left: calc(858 * var(--u));
+    top: calc(705 * var(--u));
+    width: calc(450 * var(--u));
+}
+
+@media (hover: hover) {
+    .decision:not(:disabled):hover {
+        filter: brightness(1.2);
+    }
+
+    .ayuda1:hover {
+        transform: scale(1.15);
+    }
+}
+
+.decision:not(:disabled):active {
+    transform: translateY(calc(4 * var(--u)));
+}
+
+.decision:disabled {
+    cursor: default;
+}
+
+.decision:focus-visible {
+    outline: 3px solid var(--amarillo);
+    outline-offset: 4px;
+}
+
+/* Letreros de resultado: encima de la parte baja de la pantalla */
+#resultados {
+    position: absolute;
+    left: calc(462 * var(--u));
+    top: calc(354 * var(--u));
+    width: calc(786 * var(--u));
+    aspect-ratio: 786 / 204;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.resultado {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.resultado.mostrar {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Vidas y progreso (esquina superior izquierda) */
+#estado {
+    position: absolute;
+    left: calc(28 * var(--u));
+    top: calc(28 * var(--u));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(10 * var(--u));
+    z-index: 10;
+}
+
+#vidas {
+    display: flex;
+    gap: calc(8 * var(--u));
+}
+
+.vida {
+    width: calc(56 * var(--u));
+    height: calc(56 * var(--u));
+    object-fit: contain;
+}
+
+@keyframes parpadeoVida {
+    0%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.2; }
+    50% { opacity: 1; }
+}
+
+.vida.parpadeando {
+    animation: parpadeoVida 0.5s ease-in-out 2;
+}
+
+.vida.perdida {
+    opacity: 0.2;
+    filter: grayscale(1);
+}
+
+#progreso {
+    padding: calc(6 * var(--u)) calc(12 * var(--u));
+    background: rgba(11, 30, 63, 0.85);
+    border: calc(3 * var(--u)) solid var(--cian);
+    border-radius: calc(8 * var(--u));
+    font-family: 'Press Start 2P', monospace;
+    font-size: max(8px, calc(16 * var(--u)));
+    color: var(--texto);
+}
+
+#progreso:empty {
+    display: none;
+}
+
+/* Logos (esquina superior derecha, a la derecha de la pantalla) */
+#logos {
+    position: absolute;
+    right: calc(24 * var(--u));
+    top: calc(28 * var(--u));
+    display: flex;
+    align-items: center;
+    gap: calc(10 * var(--u));
+    padding: calc(6 * var(--u)) calc(10 * var(--u));
+    background: rgba(230, 246, 255, 0.92);
+    border: calc(3 * var(--u)) solid var(--cian);
+    border-radius: calc(10 * var(--u));
+    z-index: 10;
+    pointer-events: none;
+}
+
+#logos img {
+    display: block;
+    height: calc(50 * var(--u));
+    width: auto;
+}
+
+/* Ayuda (esquina inferior derecha, sobre el piso) */
+#ayuda {
+    position: absolute;
+    right: calc(30 * var(--u));
+    bottom: calc(30 * var(--u));
+    display: flex;
+    z-index: 10;
+}
+
+.ayuda1 {
+    width: calc(64 * var(--u));
+    height: calc(64 * var(--u));
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+/* Ventanas (modales) */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 8, 20, 0.6);
+}
+
+.modal[hidden] {
+    display: none;
+}
+
+.modal-contenido {
+    position: relative;
+    width: min(580px, 90%);
+    max-height: 90dvh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 24px 28px;
+    background: var(--azul-noche);
+    border: 4px solid var(--cian);
+    border-radius: 12px;
+    box-shadow: 0 0 0 4px var(--azul), 0 8px 0 4px #050d1c;
+    font-family: sans-serif;
+    color: var(--texto);
+}
+
+.modal-contenido h2 {
+    margin: 0 0 8px;
+    color: var(--cian);
+}
+
+.modal-contenido h3 {
+    margin: 16px 0 6px;
+    font-size: 17px;
+    color: var(--amarillo);
+}
+
+.modal-conceptos,
+.lista-info {
+    padding-left: 20px;
+    line-height: 1.7;
+}
+
+.modal-cerrar {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    border: none;
+    background: none;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--texto);
+    cursor: pointer;
+}
+
+/* Inicio */
+.inicio {
+    text-align: center;
+}
+
+.titulo-juego {
+    margin: 4px 0 12px;
+    padding-bottom: 14px;
+    border-bottom: 3px solid var(--cian);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 26px;
+    line-height: 1.4;
+    color: var(--amarillo);
+    text-shadow: 3px 3px 0 #7a4b00;
+}
+
+.subtitulo {
+    font-weight: bold;
+    color: var(--cian);
+}
+
+.boton-principal,
+.boton-info,
+.retro-boton {
+    border: 3px solid #7a4b00;
+    border-radius: 8px;
+    background: var(--amarillo);
+    color: #1a1200;
+    font-family: 'Press Start 2P', monospace;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #7a4b00;
+}
+
+.boton-principal:hover,
+.boton-info:hover,
+.retro-boton:hover {
+    background: #ffc933;
+}
+
+.boton-principal:active,
+.boton-info:active,
+.retro-boton:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #7a4b00;
+}
+
+.boton-principal {
+    margin: 10px auto 4px;
+    padding: 14px 32px;
+    font-size: 16px;
+}
+
+.botones-info {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.boton-info {
+    padding: 10px 14px;
+    font-size: 11px;
+    background: var(--cian);
+    border-color: #0b5f80;
+    box-shadow: 0 4px 0 #0b5f80;
+}
+
+.boton-info:hover {
+    background: #8ae6ff;
+}
+
+/* Créditos */
+.creditos {
+    text-align: center;
+}
+
+.creditos h3 {
+    margin-bottom: 2px;
+}
+
+.creditos p {
+    margin: 0;
+}
+
+.creditos-licencia {
+    margin-top: 18px !important;
+    font-size: 14px;
+}
+
+/* Retroalimentación final */
+.retro-mensaje {
+    font-weight: bold;
+    color: var(--cian);
+}
+
+.retro-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+.retro-tabla th,
+.retro-tabla td {
+    padding: 4px 8px;
+    border-bottom: 2px solid var(--azul);
+    text-align: left;
+}
+
+.retro-tabla tr.retro-debil td {
+    color: #ff8a8a;
+}
+
+.retro-fallidas {
+    padding-left: 20px;
+    line-height: 1.5;
+}
+
+.retro-fallidas li {
+    margin-bottom: 12px;
+}
+
+.retro-detalle {
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.etiqueta-trampa {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #c8102e;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.retro-boton {
+    display: block;
+    margin: 18px auto 0;
+    padding: 12px 20px;
+    font-size: 12px;
+}
+
+/* Scrollbar de la retro, con los colores del modal */
+@supports not selector(::-webkit-scrollbar) {
+    #retroContenido {
+        scrollbar-width: thin;
+        scrollbar-color: var(--cian) var(--azul);
+    }
+}
+
+#retroContenido::-webkit-scrollbar {
+    width: 12px;
+}
+
+#retroContenido::-webkit-scrollbar-track {
+    background: var(--azul);
+    border-radius: 8px;
+    margin: 8px 0;
+}
+
+#retroContenido::-webkit-scrollbar-thumb {
+    background: var(--cian);
+    border: 3px solid var(--azul);
+    border-radius: 8px;
+}
+
+/* Aviso para girar el dispositivo (celulares en vertical) */
+#girar {
+    display: none;
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+    #girar {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 24px;
+        box-sizing: border-box;
+        background: #0a1426;
+        color: var(--texto);
+        font-family: sans-serif;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .girar-icono {
+        width: 48px;
+        height: 80px;
+        border: 4px solid var(--cian);
+        border-radius: 10px;
+        animation: girarIcono 2s ease-in-out infinite;
+    }
+}
+
+@keyframes girarIcono {
+    0%, 20% { transform: rotate(0deg); }
+    50%, 80% { transform: rotate(90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Pantallas chicas (celular horizontal, tabletas pequeñas) */
+@media (max-width: 700px), (max-height: 500px) {
+    .modal-contenido {
+        width: min(580px, 94vw);
+        padding: 16px 18px;
+        font-size: 14px;
+    }
+
+    .modal-contenido h2 {
+        font-size: 20px;
+    }
+
+    .modal-contenido h3 {
+        font-size: 15px;
+        margin-top: 10px;
+    }
+
+    .titulo-juego {
+        font-size: 18px;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+    }
+
+    .boton-principal {
+        font-size: 13px;
+        padding: 10px 22px;
+    }
+
+    .boton-info,
+    .retro-boton {
+        font-size: 10px;
+    }
+}
+
+/* Botón regresar: esquina inferior izquierda */
+#controles {
+    position: absolute;
+    left: calc(30 * var(--u));
+    bottom: calc(30 * var(--u));
+    z-index: 10;
+    display: flex;
+    gap: calc(10 * var(--u));
+}
+
+.boton-regresar {
+    padding: calc(10 * var(--u)) calc(16 * var(--u));
+    border: calc(3 * var(--u)) solid var(--cian);
+    border-radius: calc(10 * var(--u));
+    background: rgba(11, 30, 63, 0.9);
+    color: var(--texto);
+    font-family: 'Press Start 2P', monospace;
+    font-size: max(8px, calc(16 * var(--u)));
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.boton-regresar:hover {
+    transform: scale(1.08);
+    background: var(--azul);
+}
+
+.boton-regresar:focus-visible {
+    outline: 3px solid var(--amarillo);
+}
+
+/* Botón de música: tachado cuando está silenciada */
+.boton-musica {
+    position: relative;
+    min-width: calc(54 * var(--u));
+}
+
+.boton-musica.apagada {
+    opacity: 0.6;
+}
+
+.boton-musica.apagada::after {
+    content: '';
+    position: absolute;
+    left: 20%;
+    right: 20%;
+    top: 50%;
+    height: calc(3 * var(--u));
+    min-height: 2px;
+    background: currentColor;
+    transform: rotate(-45deg);
+}
